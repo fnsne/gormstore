@@ -34,6 +34,7 @@ package gormstore
 
 import (
 	"encoding/base32"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -41,7 +42,7 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 const sessionIDLen = 32
@@ -77,6 +78,7 @@ type gormSession struct {
 type contextKey string
 
 func (gs *gormSession) TableName() string {
+	log.Printf("TableName: %s\n", gs.tableName)
 	return gs.tableName
 }
 
@@ -99,10 +101,13 @@ func NewOptions(db *gorm.DB, opts Options, keyPairs ...[]byte) *Store {
 	if st.opts.TableName == "" {
 		st.opts.TableName = defaultTableName
 	}
+	log.Printf("st.opts.TableName: %#+v\n", st.opts.TableName)
 
 	if !st.opts.SkipCreateTable {
 		st.db.AutoMigrate(&gormSession{tableName: st.opts.TableName})
 	}
+
+	log.Printf("st: %#+v\n", st)
 
 	return st
 }
@@ -126,7 +131,8 @@ func (st *Store) New(r *http.Request, name string) (*sessions.Session, error) {
 			return session, nil
 		}
 		s := &gormSession{tableName: st.opts.TableName}
-		if err := st.db.Where("id = ? AND expires_at > ?", session.ID, gorm.NowFunc()).First(s).Error; err != nil {
+		log.Printf("s: %#+v\n", s)
+		if err := st.db.Where("id = ? AND expires_at > ?", session.ID, time.Now()).First(s).Error; err != nil {
 			return session, nil
 		}
 		if err := securecookie.DecodeMulti(session.Name(), s.Data, &session.Values, st.Codecs...); err != nil {
@@ -222,7 +228,7 @@ func (st *Store) MaxLength(l int) {
 
 // Cleanup deletes expired sessions
 func (st *Store) Cleanup() {
-	st.db.Delete(&gormSession{tableName: st.opts.TableName}, "expires_at <= ?", gorm.NowFunc())
+	st.db.Delete(&gormSession{tableName: st.opts.TableName}, "expires_at <= ?", time.Now())
 }
 
 // PeriodicCleanup runs Cleanup every interval. Close quit channel to stop.
