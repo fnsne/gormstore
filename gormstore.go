@@ -77,9 +77,12 @@ type gormSession struct {
 // Define a type for context keys so that they can't clash with anything else stored in context
 type contextKey string
 
+var tableName string
+
 func (gs *gormSession) TableName() string {
 	log.Printf("TableName: %s\n", gs.tableName)
-	return gs.tableName
+	//return gs.tableName
+	return tableName
 }
 
 // New creates a new gormstore session
@@ -101,10 +104,8 @@ func NewOptions(db *gorm.DB, opts Options, keyPairs ...[]byte) *Store {
 	if st.opts.TableName == "" {
 		st.opts.TableName = defaultTableName
 	}
+	tableName = st.opts.TableName
 	log.Printf("st.opts.TableName: %#+v\n", st.opts.TableName)
-	st.db = st.db.Scopes(func(db *gorm.DB) *gorm.DB {
-		return db.Table(st.opts.TableName)
-	})
 
 	if !st.opts.SkipCreateTable {
 		st.db.AutoMigrate(&gormSession{tableName: st.opts.TableName})
