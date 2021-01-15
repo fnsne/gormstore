@@ -2,9 +2,10 @@
 
     go get github.com/wader/gormstore
 
-#### Documentation
-
-https://pkg.go.dev/github.com/wader/gormstore?tab=doc
+#### important
+This is using for gorm v2. And because v2 not supported dynamic tableName, so some driver will failed when Migrating.
+To fix that, I use an package variable to record tableName. But by this way, there should be only one gormstore.
+If using more than one gormstore, there will some error happend.
 
 #### Example
 
