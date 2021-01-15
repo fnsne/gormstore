@@ -102,6 +102,9 @@ func NewOptions(db *gorm.DB, opts Options, keyPairs ...[]byte) *Store {
 		st.opts.TableName = defaultTableName
 	}
 	log.Printf("st.opts.TableName: %#+v\n", st.opts.TableName)
+	st.db = st.db.Scopes(func(db *gorm.DB) *gorm.DB {
+		return db.Table(st.opts.TableName)
+	})
 
 	if !st.opts.SkipCreateTable {
 		st.db.AutoMigrate(&gormSession{tableName: st.opts.TableName})
