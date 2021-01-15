@@ -1,4 +1,4 @@
-module github.com/fnsne/gormstore/
+module github.com/fnsne/gormstore
 
 go 1.14
 
